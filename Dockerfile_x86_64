@@ -1,0 +1,28 @@
+ARG ARCH=frommakefile
+ARG DOCKERSRC=frommakefile
+ARG USERNAME=frommakefile
+#
+FROM ${USERNAME}/${DOCKERSRC}:${ARCH}
+#
+ARG PUID=1000
+ARG PGID=1000
+#
+RUN set -xe \
+    && echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories \
+    && echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories \
+    && apk add --no-cache --purge -uU \
+        curl icu-libs unzip zlib-dev musl \
+        mesa-gl mesa-dri-swrast \
+        libreoffice libreoffice-base libreoffice-lang-uk \
+        ttf-freefont ttf-opensans ttf-font-awesome ttf-ubuntu-font-family ttf-inconsolata \
+        libstdc++ dbus-x11 \
+    && rm -rf /var/cache/apk/* /tmp/*
+#
+VOLUME /home/alpine/
+#
+USER alpine
+WORKDIR /home/alpine/
+#
+ENTRYPOINT ["/usr/bin/libreoffice"]
+# ENTRYPOINT ["/bin/bash"]
+# ENTRYPOINT ["/init"]
