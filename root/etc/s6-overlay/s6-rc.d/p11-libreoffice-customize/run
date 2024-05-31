@@ -1,0 +1,5 @@
+#!/usr/bin/with-contenv bash
+set -e
+
+# bring your own custom setup script
+echo "Nothing to customize for LibreOffice.";

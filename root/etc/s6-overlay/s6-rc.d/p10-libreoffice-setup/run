@@ -1,0 +1,41 @@
+#!/usr/bin/with-contenv bash
+set -e
+
+if [ -n "${GID_AUDIO}" ]; # update gid of 'audio' if defined
+then
+    groupmod -o -g "${GID_AUDIO}" audio;
+fi
+
+if [ -n "${GID_PULSE}" ]; # update gid of 'pulse' if defined
+then
+    groupmod -o -g "${GID_PULSE}" pulse;
+fi
+
+if [ -n "${GID_VIDEO}" ]; # update gid of 'video' if defined
+then
+    groupmod -o -g "${GID_VIDEO}" video;
+fi
+
+adduser ${S6_USER:-alpine} audio;
+adduser ${S6_USER:-alpine} pulse;
+adduser ${S6_USER:-alpine} video;
+
+USERHOMEDIR="$(getent passwd ${S6_USER:-alpine} | cut -d: -f6)";
+
+# ensure firefox dirs
+mkdir -p \
+    "${USERHOMEDIR}/Documents" \
+    "${USERHOMEDIR}/.local" \
+    "${USERHOMEDIR}/.config/libreoffice" \
+    ;
+
+# fix permissions
+chown ${S6_USER:-alpine}:${S6_USER:-alpine} \
+    "${USERHOMEDIR}" \
+    "${USERHOMEDIR}/Documents" \
+    ;
+
+chown -R ${S6_USER:-alpine}:${S6_USER:-alpine} \
+    "${USERHOMEDIR}/.local" \
+    "${USERHOMEDIR}/.config/libreoffice" \
+    ;
