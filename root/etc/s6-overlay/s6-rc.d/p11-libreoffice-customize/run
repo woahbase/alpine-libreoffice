@@ -1,5 +1,7 @@
 #!/usr/bin/with-contenv bash
 set -e
 
+vecho () { if [ "${S6_VERBOSITY:-1}" -gt 0 ]; then echo "[$0] $@"; fi; }
+
 # bring your own custom setup script
-echo "Nothing to customize for LibreOffice.";
+vecho "Nothing to customize for LibreOffice.";

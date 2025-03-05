@@ -1,7 +1,8 @@
 # {{{ -- meta
 OPSYS     := alpine
+JVVMAJOR  := 8
 SVCNAME   := libreoffice
-SRCIMAGE  := openjdk8
+SRCIMAGE  := openjdk$(JVVMAJOR)
 
 ifndef ORGNAME # ensure ORGNAME in env is prioritised over default
 	ORGNAME  := woahbase
@@ -45,7 +46,7 @@ LABELFLAGS ?= \
 	--label online.woahbase.source-image="$(if $(filter scratch,$(SRCIMAGE)),scratch,$(OPSYS)-$(SRCIMAGE):$(if $(SRCTAG),$(SRCTAG),$(ARCH)))" \
 	--label org.opencontainers.image.base.name="$(if $(filter scratch,$(SRCIMAGE)),scratch,docker.io/$(ORGNAME)/$(OPSYS)-$(SRCIMAGE):$(if $(SRCTAG),$(SRCTAG),$(ARCH)))" \
 	--label org.opencontainers.image.created=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ") \
-	--label org.opencontainers.image.documentation="$(if $(DOC_URL),$(DOC_URL),https://woahbase.online/\#/images)/$(REPONAME)" \
+	--label org.opencontainers.image.documentation="$(if $(DOC_URL),$(DOC_URL),https://woahbase.online/images)/$(REPONAME)" \
 	--label org.opencontainers.image.revision=$(shell git rev-parse --short HEAD) \
 	--label org.opencontainers.image.source="$(shell git config --get remote.origin.url)" \
 	--label org.opencontainers.image.title=$(REPONAME) \

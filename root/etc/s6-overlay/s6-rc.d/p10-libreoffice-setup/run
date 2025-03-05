@@ -1,6 +1,9 @@
 #!/usr/bin/with-contenv bash
 set -e
 
+vecho () { if [ "${S6_VERBOSITY:-1}" -gt 0 ]; then echo "[$0] $@"; fi; }
+if [ "X${EUID}" != "X0" ]; then vecho "Skipped. Reason: no root privileges."; exit 0; fi;
+
 if [ -n "${GID_AUDIO}" ]; # update gid of 'audio' if defined
 then
     groupmod -o -g "${GID_AUDIO}" audio;
@@ -22,7 +25,8 @@ adduser ${S6_USER:-alpine} video;
 
 USERHOMEDIR="$(getent passwd ${S6_USER:-alpine} | cut -d: -f6)";
 
-# ensure firefox dirs
+# ensure libreoffice dirs
+vecho "Ensure configuration directories exist.";
 mkdir -p \
     "${USERHOMEDIR}/Documents" \
     "${USERHOMEDIR}/.local" \
@@ -30,6 +34,7 @@ mkdir -p \
     ;
 
 # fix permissions
+vecho "Fixing permissions.";
 chown ${S6_USER:-alpine}:${S6_USER:-alpine} \
     "${USERHOMEDIR}" \
     "${USERHOMEDIR}/Documents" \
