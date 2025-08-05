@@ -2,28 +2,26 @@
 set -e
 
 vecho () { if [ "${S6_VERBOSITY:-1}" -gt 0 ]; then echo "[$0] $@"; fi; }
-if [ "X${EUID}" != "X0" ]; then vecho "Skipped. Reason: no root privileges."; exit 0; fi;
 
-if [ -n "${GID_AUDIO}" ]; # update gid of 'audio' if defined
+if [ "X${EUID}" == "X0" ]; # requires root
 then
-    groupmod -o -g "${GID_AUDIO}" audio;
-fi
+    vecho "Add ${S6_USER:-alpine} to groups: audio, pulse, video";
+    if [ -n "${GID_AUDIO}" ]; # update gid of 'audio' if defined
+    then groupmod -o -g "${GID_AUDIO}" audio;
+    fi;
+    adduser ${S6_USER:-alpine} audio;
+    if [ -n "${GID_PULSE}" ]; # update gid of 'pulse' if defined
+    then groupmod -o -g "${GID_PULSE}" pulse;
+    fi;
+    adduser ${S6_USER:-alpine} pulse;
+    if [ -n "${GID_VIDEO}" ]; # update gid of 'video' if defined
+    then groupmod -o -g "${GID_VIDEO}" video;
+    fi;
+    adduser ${S6_USER:-alpine} video;
+fi;
 
-if [ -n "${GID_PULSE}" ]; # update gid of 'pulse' if defined
-then
-    groupmod -o -g "${GID_PULSE}" pulse;
-fi
-
-if [ -n "${GID_VIDEO}" ]; # update gid of 'video' if defined
-then
-    groupmod -o -g "${GID_VIDEO}" video;
-fi
-
-adduser ${S6_USER:-alpine} audio;
-adduser ${S6_USER:-alpine} pulse;
-adduser ${S6_USER:-alpine} video;
-
-USERHOMEDIR="$(getent passwd ${S6_USER:-alpine} | cut -d: -f6)";
+S6_USERHOME="${S6_USERHOME:-$(getent passwd ${S6_USER:-alpine} | cut -d: -f6)}";
+USERHOMEDIR="${HOME:-$S6_USERHOME}";
 
 # ensure libreoffice dirs
 vecho "Ensure configuration directories exist.";
@@ -34,13 +32,18 @@ mkdir -p \
     ;
 
 # fix permissions
-vecho "Fixing permissions.";
-chown ${S6_USER:-alpine}:${S6_USER:-alpine} \
-    "${USERHOMEDIR}" \
-    "${USERHOMEDIR}/Documents" \
-    ;
+if [ -z "${LIBREOFFICE_SKIP_PERMFIX}" ] \
+&& [ "X${EUID}" == "X0" ]; # requires root
+then
+    vecho "Fixing permissions.";
+    chown ${S6_USER:-alpine}:${PGID:-1000} \
+        "${USERHOMEDIR}" \
+        "${USERHOMEDIR}/Documents" \
+        ;
 
-chown -R ${S6_USER:-alpine}:${S6_USER:-alpine} \
-    "${USERHOMEDIR}/.local" \
-    "${USERHOMEDIR}/.config/libreoffice" \
-    ;
+    find "${USERHOMEDIR}/.config/libreoffice" "${USERHOMEDIR}/.local" \
+        \! -user ${S6_USER:-alpine} -exec \
+        chown --no-dereference \
+        ${S6_USER:-alpine}:${PGID:-1000} \
+        '{}' +;
+fi;
