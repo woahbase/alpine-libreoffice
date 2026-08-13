@@ -1,6 +1,6 @@
 # {{{ -- meta
 OPSYS     := alpine
-JVVMAJOR  := 11
+JVVMAJOR  := 8
 SVCNAME   := libreoffice
 SRCIMAGE  := openjdk$(JVVMAJOR)
 
